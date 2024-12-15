@@ -1,11 +1,22 @@
-import Article from '../models/Article.js';
+import Article from "../models/Article.js";
+import ConstitutionPart from "../models/ConstitutionPart.js";
 
-// @desc   Create a new article
+// @desc   Create a new article and add it to a Constitution Part
 // @route  POST /api/articles
 export const createArticle = async (req, res) => {
   try {
-    const { title, content, summary, visualizationUrl } = req.body;
+    const { title, content, summary, visualizationUrl, constitutionPartTitle } =
+      req.body;
 
+    // Find the Constitution Part by title
+    const part = await ConstitutionPart.findOne({
+      title: constitutionPartTitle,
+    });
+    if (!part) {
+      return res.status(404).json({ message: "Constitution Part not found" });
+    }
+
+    // Create the new article
     const newArticle = new Article({
       title,
       content,
@@ -13,8 +24,17 @@ export const createArticle = async (req, res) => {
       visualizationUrl,
     });
 
-    await newArticle.save();
-    res.status(201).json({ message: 'Article created successfully', article: newArticle });
+    const savedArticle = await newArticle.save();
+
+    // Add the article to the Constitution Part
+    part.articles.push(savedArticle._id);
+    await part.save();
+
+    res.status(201).json({
+      message: "Article created successfully",
+      article: savedArticle,
+      part,
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -39,7 +59,7 @@ export const getArticleById = async (req, res) => {
     const article = await Article.findById(id);
 
     if (!article) {
-      return res.status(404).json({ message: 'Article not found' });
+      return res.status(404).json({ message: "Article not found" });
     }
 
     res.status(200).json(article);
@@ -55,13 +75,15 @@ export const updateArticleById = async (req, res) => {
     const { id } = req.params;
     const updatedData = req.body;
 
-    const article = await Article.findByIdAndUpdate(id, updatedData, { new: true });
+    const article = await Article.findByIdAndUpdate(id, updatedData, {
+      new: true,
+    });
 
     if (!article) {
-      return res.status(404).json({ message: 'Article not found' });
+      return res.status(404).json({ message: "Article not found" });
     }
 
-    res.status(200).json({ message: 'Article updated successfully', article });
+    res.status(200).json({ message: "Article updated successfully", article });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -76,10 +98,10 @@ export const deleteArticleById = async (req, res) => {
     const article = await Article.findByIdAndDelete(id);
 
     if (!article) {
-      return res.status(404).json({ message: 'Article not found' });
+      return res.status(404).json({ message: "Article not found" });
     }
 
-    res.status(200).json({ message: 'Article deleted successfully' });
+    res.status(200).json({ message: "Article deleted successfully" });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

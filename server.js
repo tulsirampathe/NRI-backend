@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 
 import userRoutes from "./routes/userRoutes.js";
+import constitutionPartRoutes from "./routes/constitutionPartRoutes.js";
 import articleRoutes from "./routes/articleRoutes.js";
 
 import cookieParser from "cookie-parser";
@@ -26,6 +27,7 @@ app.get("/", (req, res) => {
 
 // Routes
 app.use("/api/users", userRoutes);
+app.use("/api/constitutionPart", constitutionPartRoutes);
 app.use("/api/articles", articleRoutes);
 
 // Server Start
